@@ -7,7 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users") // Określenie nazwy tabeli
+@Table(name = "users") 
 public class User {
 
     @Id
@@ -17,7 +17,7 @@ public class User {
     private String email;
     private String password;
 
-    // Gettery i settery
+
 
     public Long getId() {
         return id;

@@ -9,7 +9,8 @@ import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router'; 
 import HomeComponent from './components/HomeComponent.vue';
 import LoginComponent from './components/LoginComponent.vue';
-import RegisterComponent from "./components/RegisterComponent.vue"
+import RegisterComponent from "./components/RegisterComponent.vue";
+import FeedComponent from "./components/FeedComponent.vue";
 const route = useRoute(); 
 
 
@@ -22,12 +23,17 @@ const getRouteComponent = computed(() => {
     
     case '/register' :
       return RegisterComponent;
+
+    case '/feed' :
+      return FeedComponent;
     default:
       return NotFoundComponent; 
   }
 });
 </script>
 
-<style scoped>
-
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+}
 </style>
