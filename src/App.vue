@@ -29,8 +29,5 @@ const getRouteComponent = computed(() => {
 </script>
 
 <style scoped>
-body {
-  font-family: 'Work Sans', sans-serif;
-}
 
 </style>

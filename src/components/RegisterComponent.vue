@@ -3,7 +3,7 @@
     <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-sm">
       <h2 class="text-2xl font-bold text-pink-300 text-center mb-4">Sign in</h2>
 
-      <form @submit.prevent="onSubmit">
+      <form @submit.prevent="register">
         <div class="mb-4">
           <label for="name" class="block text-pink-500 text-sm mb-2">Name and surname</label>
           <input type="text" id="name" class="form-input w-full bg-white border border-gray-300 rounded-md py-2 px-4" v-model="name" />
@@ -33,6 +33,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
@@ -43,9 +45,20 @@ export default {
     };
   },
   methods: {
-    register() {
-      
-      console.log('Próba rejestracji...', this.name, this.email, this.password);
+    async register() {
+      try {
+        const response = await axios.post('http://localhost:8080/users/add', {
+          name: this.name,
+          email: this.email,
+          password: this.password,
+          
+        });
+        console.log('Rejestracja udana:', response.data);
+        
+      } catch (error) {
+        console.error('Błąd podczas rejestracji:', error);
+        
+      }
     },
   },
 };

@@ -1,10 +1,10 @@
-package jtab.demo;
+package insta.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DemoApplicationTests {
+class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
