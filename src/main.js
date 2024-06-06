@@ -6,7 +6,7 @@ import HomeComponent from './components/HomeComponent.vue';
 import LoginComponent from './components/LoginComponent.vue';
 import RegisterComponent from "./components/RegisterComponent.vue";
 
-import 'tailwindcss/base.css'; // Import Tailwind CSS styles (optional)
+import 'tailwindcss/base.css'; 
 import 'tailwindcss/components.css';
 import 'tailwindcss/utilities.css';
 import ProfileComponent from './components/ProfileComponent.vue';
@@ -18,7 +18,7 @@ const router = createRouter({
     { path: '/login', component: LoginComponent },
     {path : '/register', component : RegisterComponent},
     {path : '/feed',component : FeedComponent},
-    {path : '/profile',component : ProfileComponent}
+    {path : '/profile/:userId',component : ProfileComponent}
   ],
 });
 

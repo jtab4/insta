@@ -4,9 +4,10 @@
     <aside class="sidebar w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
       <div class="profile flex flex-col items-center bg-pink-100 p-4 rounded-lg">
         <img class="w-24 h-24 rounded-full mb-4" src="https://via.placeholder.com/150" alt="Profile Picture">
-        <h2 class="text-lg font-semibold text-pink-500">Username</h2>
-        <p class="text-sm text-gray-600 mb-4">Bio description goes here...</p>
-        <button class="bg-orange-300 text-white px-4 py-2 rounded-lg hover:bg-orange-400">View profile</button>
+        <h2 class="text-lg font-semibold text-pink-500">{{ userData.name }}</h2>
+        
+        <!-- Dodano obsługę kliknięcia przycisku "View profile" -->
+        <button @click="viewProfile" class="bg-orange-300 text-white px-4 py-2 rounded-lg hover:bg-orange-400">View profile</button>
       </div>
       <div class="suggestions mt-6 bg-pink-100 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Suggestions for you</h3>
@@ -24,14 +25,7 @@
     
     <main class="feed w-full md:w-2/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
       
-      <div class="stories flex space-x-4 overflow-x-auto bg-white p-4 rounded-lg shadow-sm mb-4">
-        <div class="story flex flex-col items-center">
-          <img class="w-16 h-16 rounded-full border-2 border-red-500 p-1" src="https://via.placeholder.com/100" alt="Story Picture">
-          <span class="text-xs mt-1 text-pink-500">User 1</span>
-        </div>
-        
-      </div>
-
+      <!-- Usunięto sekcję stories -->
       
       <div class="post-list space-y-6">
         
@@ -58,9 +52,7 @@
       <div class="notifications bg-pink-100 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Notifications</h3>
         <ul class="space-y-2">
-          <li class="text-sm">User1 liked your post</li>
-          <li class="text-sm">User2 started following you</li>
-          
+          <li class="text-sm" v-for="notification in userData.notifications" :key="notification.id">{{ notification.content }}</li>
         </ul>
       </div>
     </aside>
@@ -69,6 +61,7 @@
 
 <script>
 import PostComponent from './PostComponent.vue'; 
+import { useRouter } from 'vue-router'; // Importujemy useRouter z Vue Router
 
 export default {
   components: {
@@ -76,9 +69,39 @@ export default {
   },
 
   props: ['userEmail'], 
-  
+  data() {
+    return {
+      userData: null
+    };
+  },
+  methods: {
+    // Metoda do obsługi kliknięcia przycisku "View profile"
+    viewProfile() {
+      // Pobierz identyfikator użytkownika z danych użytkownika
+      const userId = this.userData.id;
+      
+      this.$router.push(`/profile/${userId}`);
+    }
+  },
   created() {
-    console.log('Logged in as:', this.userEmail);
+    const userEmail = localStorage.getItem('userEmail');
+    console.log('Logged in as:', userEmail);
+
+    
+    fetch(`http://localhost:8080/users/${userEmail}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('User data:', data);
+        this.userData = data; 
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
   }
 };
 </script>
