@@ -11,6 +11,7 @@ import HomeComponent from './components/HomeComponent.vue';
 import LoginComponent from './components/LoginComponent.vue';
 import RegisterComponent from "./components/RegisterComponent.vue";
 import FeedComponent from "./components/FeedComponent.vue";
+import ProfileComponent from './components/ProfileComponent.vue';
 const route = useRoute(); 
 
 
@@ -26,6 +27,9 @@ const getRouteComponent = computed(() => {
 
     case '/feed' :
       return FeedComponent;
+    
+    case '/profile' :
+      return ProfileComponent
     default:
       return NotFoundComponent; 
   }

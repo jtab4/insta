@@ -52,7 +52,8 @@ export default {
         });
         console.log('Login successful:', response.data);
         
-        this.$router.push('/feed');
+        // Po zalogowaniu pomyślnym, przekierowujemy użytkownika do ścieżki /feed, przekazując również adres e-mail
+        this.$router.push({ name: 'feed', params: { email: this.email } });
       } catch (error) {
         console.error('Login failed:', error.response.data);
         
@@ -64,5 +65,5 @@ export default {
 </script>
 
 <style scoped>
-
+/* Brak stylów do dodania */
 </style>
