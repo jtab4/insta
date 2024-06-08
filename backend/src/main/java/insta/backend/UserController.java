@@ -16,16 +16,15 @@ public class UserController {
 
     @PostMapping("/add")
     public ResponseEntity<String> addUser(@RequestBody User user) {
-        // Check if user with the given email already exists
+        
         if (userRepository.existsByEmail(user.getEmail())) {
             return ResponseEntity.status(409).body("User with this email already exists");
         }
 
-        // Hash the password
+        
         String hashedPassword = HashingUtil.hashPassword(user.getPassword());
         user.setPassword(hashedPassword);
 
-        // Save the user
         userRepository.save(user);
         return ResponseEntity.ok("User added successfully");
     }
