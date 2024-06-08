@@ -3,7 +3,7 @@
    
     <aside class="sidebar w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
       <div class="profile flex flex-col items-center bg-pink-100 p-4 rounded-lg">
-        <img class="w-24 h-24 rounded-full mb-4" src="https://via.placeholder.com/150" alt="Profile Picture">
+        <img class="w-24 h-24 rounded-full mb-4" src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" alt="Profile Picture">
         <h2 class="text-lg font-semibold text-pink-500">{{ userData.name }}</h2>
         
         <!-- Dodano obsługę kliknięcia przycisku "View profile" -->
@@ -11,14 +11,13 @@
       </div>
       <div class="suggestions mt-6 bg-pink-100 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Suggestions for you</h3>
-        <div class="suggestion flex items-center mb-3">
-          <img class="w-10 h-10 rounded-full" src="https://via.placeholder.com/100" alt="Suggestion Picture">
+        <div class="suggestion flex items-center mb-3" v-for="user in suggestions" :key="user.id">
+          <img class="w-10 h-10 rounded-full" src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" :alt="user.name">
           <div class="ml-3">
-            <h4 class="text-sm font-semibold text-pink-500">Suggested User</h4>
+            <h4 class="text-sm font-semibold text-pink-500">{{ user.name }}</h4>
             <button class="text-orange-300 text-xs hover:text-orange-400">Follow</button>
           </div>
         </div>
-        
       </div>
     </aside>
 
@@ -71,16 +70,34 @@ export default {
   props: ['userEmail'], 
   data() {
     return {
-      userData: null
+      userData: null,
+      suggestions: []
     };
   },
   methods: {
-    // Metoda do obsługi kliknięcia przycisku "View profile"
+    
     viewProfile() {
-      // Pobierz identyfikator użytkownika z danych użytkownika
+      
       const userId = this.userData.id;
       
       this.$router.push(`/profile/${userId}`);
+    },
+    fetchSuggestions() {
+      const userEmail = localStorage.getItem('userEmail'); // Pobierz adres e-mail z localStorage
+      fetch(`http://localhost:8080/api/suggestions/lastFiveExcluding/${userEmail}`) // Wywołaj endpoint z adresem e-mail z localStorage
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Suggestions:', data);
+          this.suggestions = data;
+        })
+        .catch(error => {
+          console.error('There was a problem with fetching suggestions:', error);
+        });
     }
   },
   created() {
@@ -98,6 +115,8 @@ export default {
       .then(data => {
         console.log('User data:', data);
         this.userData = data; 
+       
+        this.fetchSuggestions();
       })
       .catch(error => {
         console.error('There was a problem with the fetch operation:', error);
@@ -107,5 +126,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>
