@@ -12,13 +12,13 @@
         </div>
       </div>
       <div class="stats mt-8 flex justify-around text-center">
-        <div class="followers">
+        <div class="followers cursor-pointer" @click="openFollowersPopup">
           <h3 class="text-xl font-semibold text-pink-500">Followers</h3>
           <p class="text-gray-600">{{ followersCount }}</p>
         </div>
-        <div class="following">
+        <div class="following cursor-pointer" @click="openFollowingPopup">
           <h3 class="text-xl font-semibold text-pink-500">Following</h3>
-          <p class="text-gray-600">{{ followingCount}}</p>
+          <p class="text-gray-600">{{ followingCount }}</p>
         </div>
       </div>
     </div>
@@ -30,6 +30,34 @@
         <div class="post bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm" v-for="(post, index) in posts" :key="index">
           <p class="text-sm text-gray-600 p-4">{{ post.content }}</p>
         </div>
+      </div>
+    </div>
+
+    <!-- Popup z listą followers -->
+    <div v-if="showFollowersPopup" class="popup fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="popup-content bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3">
+        <h3 class="text-xl font-semibold text-pink-500 mb-4 text-center">Followers</h3>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <li v-for="follower in followersList" :key="follower.id" class="flex items-center space-x-4 p-4 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200" @click="goToProfile(follower.id)">
+            <img class="w-10 h-10 rounded-full" :src="follower.profilePicture || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="Follower Picture">
+            <span class="text-gray-600">{{ follower.name }}</span>
+          </li>
+        </ul>
+        <button @click="showFollowersPopup = false" class="mt-4 bg-pink-500 text-white px-4 py-2 rounded-lg block mx-auto">Close</button>
+      </div>
+    </div>
+
+    <!-- Popup z listą following -->
+    <div v-if="showFollowingPopup" class="popup fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="popup-content bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3">
+        <h3 class="text-xl font-semibold text-pink-500 mb-4 text-center">Following</h3>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <li v-for="follow in followingList" :key="follow.id" class="flex items-center space-x-4 p-4 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200" @click="goToProfile(follow.id)">
+            <img class="w-10 h-10 rounded-full" :src="follow.profilePicture || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" alt="Follow Picture">
+            <span class="text-gray-600">{{ follow.name }}</span>
+          </li>
+        </ul>
+        <button @click="showFollowingPopup = false" class="mt-4 bg-pink-500 text-white px-4 py-2 rounded-lg block mx-auto">Close</button>
       </div>
     </div>
   </div>
@@ -48,7 +76,11 @@ export default {
       visitorId: "",
       visitedUserId : "",
       followersCount: 0,
-      followingCount:0 // Dodaj zmienną followersCount
+      followingCount: 0,
+      showFollowersPopup: false,
+      showFollowingPopup: false,
+      followersList: [],
+      followingList: []
     };
   },
 
@@ -66,7 +98,6 @@ export default {
         })
         .catch(error => {
           console.error("There was a problem with the Axios request:", error);
-          
         });
     },
 
@@ -80,6 +111,7 @@ export default {
           console.error("There was a problem with the Axios request:", error);
         });
     },
+
     getFollowingCount() {
       axios.get(`http://localhost:8080/followers/count-following/${this.visitedUserId}`)
         .then(response => {
@@ -90,19 +122,43 @@ export default {
           console.error("There was a problem with the Axios request:", error);
         });
     },
+
+    openFollowersPopup() {
+      axios.get(`http://localhost:8080/followers/followers-list/${this.visitedUserId}`)
+        .then(response => {
+          this.followersList = response.data;
+          this.showFollowersPopup = true;
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+
+    openFollowingPopup() {
+      axios.get(`http://localhost:8080/followers/following-list/${this.visitedUserId}`)
+        .then(response => {
+          this.followingList = response.data;
+          this.showFollowingPopup = true;
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+
+    goToProfile(userId) {
+      this.$router.push(`/profile/${userId}`);
+    }
   },
-  
-  
 
   created() {
-    const visitorId = parseInt(localStorage.getItem("userId"))   
+    const visitorId = parseInt(localStorage.getItem("userId"));   
     const visitedUserId = parseInt(this.$route.params.userId);
     
     console.log("Visitor ID:", visitorId);
     console.log("Visited User ID:", visitedUserId);
     
-    this.visitorId = visitorId
-    this.visitedUserId = visitedUserId
+    this.visitorId = visitorId;
+    this.visitedUserId = visitedUserId;
 
     axios.get(`http://localhost:8080/findProfile/${visitedUserId}`)
       .then(response => {
@@ -112,8 +168,7 @@ export default {
         this.following = data.following || [];
         this.posts = data.posts || [];
         console.log("User data:", data);
-        
-       
+
         this.getFollowersCount();
         this.getFollowingCount();
       })
@@ -125,5 +180,11 @@ export default {
 </script>
 
 <style scoped>
-
+.popup {
+  z-index: 1000;
+}
+.popup-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
 </style>
