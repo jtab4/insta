@@ -3,20 +3,22 @@
     <!-- Profil użytkownika -->
     <div class="profile-container bg-white shadow-lg rounded-lg p-8 w-full max-w-4xl">
       <div class="flex flex-col md:flex-row items-center md:items-start md:space-x-6">
-        <img class="w-32 h-32 rounded-full mb-4 md:mb-0" src="https://via.placeholder.com/150" alt="Profile Picture">
+        <img class="w-32 h-32 rounded-full mb-4 md:mb-0" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Profile Picture">
         <div class="flex flex-col items-center md:items-start text-center md:text-left">
           <h2 class="text-3xl font-bold text-pink-500">{{ name || 'N/A' }}</h2>
-          <button class="bg-orange-300 text-white px-6 py-2 rounded-lg hover:bg-orange-400 mt-4 md:mt-2 md:self-start">Follow</button>
+          <!-- Warunek sprawdzający czy visitorId i visitedUserId są takie same -->
+          <div v-if="visitorId == visitedUserId" class="text-gray-500 mt-4 md:mt-2 md:self-start">Your profile</div>
+          <button v-if="visitorId != visitedUserId" @click="followUser" class="bg-orange-300 text-white px-6 py-2 rounded-lg hover:bg-orange-400 mt-4 md:mt-2 md:self-start">Follow</button>
         </div>
       </div>
       <div class="stats mt-8 flex justify-around text-center">
         <div class="followers">
           <h3 class="text-xl font-semibold text-pink-500">Followers</h3>
-          <p class="text-gray-600">{{ followers.length || 0 }}</p>
+          <p class="text-gray-600">{{ followersCount }}</p>
         </div>
         <div class="following">
           <h3 class="text-xl font-semibold text-pink-500">Following</h3>
-          <p class="text-gray-600">{{ following.length || 0 }}</p>
+          <p class="text-gray-600">{{ followingCount}}</p>
         </div>
       </div>
     </div>
@@ -42,13 +44,67 @@ export default {
       name: "",
       followers: [],
       following: [],
-      posts: []
+      posts: [],
+      visitorId: "",
+      visitedUserId : "",
+      followersCount: 0,
+      followingCount:0 // Dodaj zmienną followersCount
     };
   },
+
+  methods: {
+    followUser() {
+      const newFollower = {
+        user: { id: this.visitedUserId },
+        follower: { id: this.visitorId }
+      };
+
+      axios.post('http://localhost:8080/followers/add', newFollower)
+        .then(response => {
+          console.log(response.data); 
+          this.getFollowersCount();
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+          
+        });
+    },
+
+    getFollowersCount() {
+      axios.get(`http://localhost:8080/followers/count/${this.visitedUserId}`)
+        .then(response => {
+          this.followersCount = response.data; 
+          console.log(response.data)
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+    getFollowingCount() {
+      axios.get(`http://localhost:8080/followers/count-following/${this.visitedUserId}`)
+        .then(response => {
+          this.followingCount = response.data; 
+          console.log(response.data)
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+  },
+  
+  
+
   created() {
-    const userId = parseInt(this.$route.params.userId);
+    const visitorId = parseInt(localStorage.getItem("userId"))   
+    const visitedUserId = parseInt(this.$route.params.userId);
     
-    axios.get(`http://localhost:8080/findProfile/${userId}`)
+    console.log("Visitor ID:", visitorId);
+    console.log("Visited User ID:", visitedUserId);
+    
+    this.visitorId = visitorId
+    this.visitedUserId = visitedUserId
+
+    axios.get(`http://localhost:8080/findProfile/${visitedUserId}`)
       .then(response => {
         const data = response.data;
         this.name = data.name;
@@ -56,6 +112,10 @@ export default {
         this.following = data.following || [];
         this.posts = data.posts || [];
         console.log("User data:", data);
+        
+       
+        this.getFollowersCount();
+        this.getFollowingCount();
       })
       .catch(error => {
         console.error("There was a problem with the Axios request:", error);

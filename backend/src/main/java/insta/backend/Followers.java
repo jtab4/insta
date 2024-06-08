@@ -1,7 +1,7 @@
-
+package insta.backend.model;
 import jakarta.persistence.*;
 import insta.backend.model.User;
-import insta.backend.model.User;
+
 @Entity
 @Table(name = "followers")
 public class Followers {

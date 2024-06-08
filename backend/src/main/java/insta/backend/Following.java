@@ -1,3 +1,4 @@
+package insta.backend.model;
 import jakarta.persistence.*;
 
 import insta.backend.model.User;

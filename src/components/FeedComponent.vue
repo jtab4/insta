@@ -3,19 +3,21 @@
    
     <aside class="sidebar w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
       <div class="profile flex flex-col items-center bg-pink-100 p-4 rounded-lg">
-        <img class="w-24 h-24 rounded-full mb-4" src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" alt="Profile Picture">
+        <img class="w-24 h-24 rounded-full mb-4" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Profile Picture">
         <h2 class="text-lg font-semibold text-pink-500">{{ userData.name }}</h2>
         
         <!-- Dodano obsługę kliknięcia przycisku "View profile" -->
-        <button @click="viewProfile" class="bg-orange-300 text-white px-4 py-2 rounded-lg hover:bg-orange-400">View profile</button>
+        <button @click="viewProfile" class="bg-orange-300 text-white px-4 py-2 rounded-lg mt-4 hover:bg-orange-400">View profile</button>
       </div>
       <div class="suggestions mt-6 bg-pink-100 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Suggestions for you</h3>
         <div class="suggestion flex items-center mb-3" v-for="user in suggestions" :key="user.id">
-          <img class="w-10 h-10 rounded-full" src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png" :alt="user.name">
-          <div class="ml-3">
-            <h4 class="text-sm font-semibold text-pink-500">{{ user.name }}</h4>
-            <button class="text-orange-300 text-xs hover:text-orange-400">Follow</button>
+          <div class="p-4 bg-white rounded-lg shadow-md flex items-center justify-between w-full">
+            <div class="flex items-center">
+              <img class="w-10 h-10 rounded-full" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" :alt="user.name">
+              <router-link :to="`/profile/${user.id}`" class="text-sm font-semibold text-pink-500 hover:underline ml-2">{{ user.name }}</router-link>
+            </div>
+            <button class="text-orange-300 text-xs hover:text-orange-400 ml-2">Follow</button>
           </div>
         </div>
       </div>
@@ -24,7 +26,7 @@
     
     <main class="feed w-full md:w-2/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
       
-      <!-- Usunięto sekcję stories -->
+      
       
       <div class="post-list space-y-6">
         
@@ -93,6 +95,7 @@ export default {
         })
         .then(data => {
           console.log('Suggestions:', data);
+          
           this.suggestions = data;
         })
         .catch(error => {
@@ -103,6 +106,8 @@ export default {
   created() {
     const userEmail = localStorage.getItem('userEmail');
     console.log('Logged in as:', userEmail);
+    
+    
 
     
     fetch(`http://localhost:8080/users/${userEmail}`)
@@ -115,6 +120,7 @@ export default {
       .then(data => {
         console.log('User data:', data);
         this.userData = data; 
+        localStorage.setItem("userId",data.id)
        
         this.fetchSuggestions();
       })
@@ -124,6 +130,5 @@ export default {
   }
 };
 </script>
-
 <style scoped>
 </style>
