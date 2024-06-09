@@ -17,7 +17,7 @@
               <img class="w-10 h-10 rounded-full" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" :alt="user.name">
               <router-link :to="`/profile/${user.id}`" class="text-sm font-semibold text-pink-500 hover:underline ml-2">{{ user.name }}</router-link>
             </div>
-            <button class="text-orange-300 text-xs hover:text-orange-400 ml-2">Follow</button>
+            
           </div>
         </div>
       </div>
