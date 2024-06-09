@@ -27,9 +27,34 @@
     <div class="posts-container mt-8 w-full max-w-4xl">
       <h3 class="text-xl font-semibold text-pink-500 mb-6 text-center">Posts</h3>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="post bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm" v-for="(post, index) in posts" :key="index">
-          <p class="text-sm text-gray-600 p-4">{{ post.content }}</p>
+        <!-- Add Post Button -->
+        <div v-if="visitorId == visitedUserId" class="flex justify-center items-center bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm cursor-pointer hover:bg-gray-100" @click="openAddPostPopup">
+          <div class="flex flex-col justify-center items-center p-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="mt-2 text-pink-500">Add Post</span>
+          </div>
         </div>
+
+        <div class="post bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm" v-for="(post, index) in posts" :key="index">
+          <div class="p-4">
+              <h4 class="font-semibold text-lg text-pink-500">{{ post.head }}</h4>
+              <p class="text-sm text-gray-600 mt-2">{{ post.text }}</p>
+              <div class="flex items-center mt-4">
+                <button 
+                    class="like-button text-red-500" 
+                    :disabled="visitedUserId === visitorId"
+                    @click="addLike(post.id)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18l-8-5V5a2 2 0 012-2h12a2 2 0 012 2v8l-8 5z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <span class="like-count ml-2 text-gray-600">{{ post.likes }}</span>
+            </div>
+          </div>
+      </div>
+      
       </div>
     </div>
 
@@ -60,6 +85,27 @@
         <button @click="showFollowingPopup = false" class="mt-4 bg-pink-500 text-white px-4 py-2 rounded-lg block mx-auto">Close</button>
       </div>
     </div>
+
+    <!-- Popup do dodawania posta -->
+    <div v-if="showAddPostPopup" class="popup fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="popup-content bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3">
+        <h3 class="text-xl font-semibold text-pink-500 mb-4 text-center">Add New Post</h3>
+        <form @submit.prevent="submitNewPost">
+          <div class="mb-4">
+            <label class="block text-gray-700">Headline</label>
+            <input v-model="newPostHeadline" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-pink-500" required>
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700">Content</label>
+            <textarea v-model="newPostContent" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-pink-500" required></textarea>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" @click="showAddPostPopup = false" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+            <button type="submit" class="bg-pink-500 text-white px-4 py-2 rounded-lg">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -79,9 +125,13 @@ export default {
       followingCount: 0,
       showFollowersPopup: false,
       showFollowingPopup: false,
+      showAddPostPopup: false,
       followersList: [],
       followingList: [],
-      isFollowing: false
+      isFollowing: false,
+      newPostHeadline: "",
+      newPostContent: "",
+      posts : []
     };
   },
 
@@ -103,6 +153,7 @@ export default {
           console.error("There was a problem with the Axios request:", error);
         });
     },
+
 
     unfollowUser() {
       axios.post('http://localhost:8080/followers/remove', {
@@ -160,6 +211,10 @@ export default {
       this.showFollowingPopup = true;
     },
 
+    openAddPostPopup() {
+      this.showAddPostPopup = true;
+    },
+
     goToProfile(userId) {
       window.location.href = `/profile/${userId}`;
     },
@@ -188,6 +243,16 @@ export default {
         .catch(error => {
           console.error("There was a problem with the Axios request:", error);
         });
+
+        axios.get(`http://localhost:8080/posts/user-posts/${visitedUserId}`)
+            .then(response => {
+              this.posts = response.data;
+              console.log("User posts:", this.posts);
+            })
+            .catch(error => {
+              console.error("There was a problem fetching user posts:", error);
+            });
+
     },
 
     loadFollowersList() {
@@ -208,6 +273,45 @@ export default {
         .then(response => {
           this.followingList = response.data;
           
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+
+    addLike(postId) {
+    axios.post(`http://localhost:8080/posts/add-like/${postId}`)
+      .then(response => {
+        
+        const updatedPost = response.data;
+        
+        const index = this.posts.findIndex(post => post.id === updatedPost.id);
+        
+        if (index !== -1) {
+          this.posts[index] = updatedPost;
+        }
+      })
+      .catch(error => {
+        console.error("There was a problem with the Axios request:", error);
+      });
+  },
+
+
+    submitNewPost() {
+      const newPost = {
+        head: this.newPostHeadline,
+        text: this.newPostContent,
+        user_id: this.visitorId,
+        likes : 0
+      };
+
+      axios.post(`http://localhost:8080/posts/add-post/${this.visitorId}`, newPost)
+        .then(response => {
+          console.log(response.data); 
+          this.posts.push(response.data); 
+          this.newPostHeadline = "";
+          this.newPostContent = "";
+          this.showAddPostPopup = false;
         })
         .catch(error => {
           console.error("There was a problem with the Axios request:", error);

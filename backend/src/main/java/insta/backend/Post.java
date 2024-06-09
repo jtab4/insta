@@ -1,6 +1,8 @@
 package insta.backend.model;
+
 import jakarta.persistence.*;
 import insta.backend.model.User;
+
 @Entity
 @Table(name = "post")
 public class Post {
@@ -12,11 +14,14 @@ public class Post {
 
     private String text;
 
+    private int likes; // Dodane pole likes
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    
+    // Pozostała część klasy bez zmian
+
     public Long getId() {
         return id;
     }
@@ -39,6 +44,14 @@ public class Post {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public int getLikes() { // Getter dla pola likes
+        return likes;
+    }
+
+    public void setLikes(int likes) { // Setter dla pola likes
+        this.likes = likes;
     }
 
     public User getUser() {
