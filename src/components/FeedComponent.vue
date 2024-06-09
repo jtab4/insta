@@ -52,10 +52,14 @@
 
       <div class="notifications bg-pink-100 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Notifications</h3>
-        <ul class="space-y-2">
-          <li class="text-sm" v-for="notification in userData.notifications" :key="notification.id">{{ notification.content }}</li>
-        </ul>
+        <div class="grid gap-4">
+          <div v-for="notification in notifications" :key="notification.id" class="bg-white shadow-md rounded-lg p-4">
+            <p class="text-sm">{{ notification.text }}</p>
+            <p class="text-xs text-gray-500">{{ notification.date }}</p>
+          </div>
+        </div>
       </div>
+      
     </aside>
   </div>
 </template>
@@ -73,7 +77,8 @@ export default {
   data() {
     return {
       userData: null,
-      suggestions: []
+      suggestions: [],
+      notifications : []
     };
   },
   methods: {
@@ -84,6 +89,22 @@ export default {
       
       this.$router.push(`/profile/${userId}`);
     },
+    fetchUserNotifications(userId) {
+      fetch(`http://localhost:8080/notifications/user/${userId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          this.notifications = data;
+        })
+        .catch(error => {
+          console.error('Error fetching user notifications:', error);
+        });
+    },
+  
     fetchSuggestions() {
       const userEmail = localStorage.getItem('userEmail'); // Pobierz adres e-mail z localStorage
       fetch(`http://localhost:8080/api/suggestions/lastFiveExcluding/${userEmail}`) // Wywołaj endpoint z adresem e-mail z localStorage
@@ -126,6 +147,7 @@ export default {
         localStorage.setItem("userId",data.id)
        
         this.fetchSuggestions();
+        this.fetchUserNotifications(data.id)
       })
       .catch(error => {
         console.error('There was a problem with the fetch operation:', error);

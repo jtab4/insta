@@ -131,7 +131,8 @@ export default {
       isFollowing: false,
       newPostHeadline: "",
       newPostContent: "",
-      posts : []
+      posts : [],
+      
     };
   },
 
@@ -171,6 +172,7 @@ export default {
         console.error("There was a problem with the Axios request:", error);
       });
 },
+        
 
 
     checkIfLoggedIn() {
