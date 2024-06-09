@@ -6,9 +6,9 @@
         <img class="w-32 h-32 rounded-full mb-4 md:mb-0" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Profile Picture">
         <div class="flex flex-col items-center md:items-start text-center md:text-left">
           <h2 class="text-3xl font-bold text-pink-500">{{ name || 'N/A' }}</h2>
-          <!-- Warunek sprawdzający czy visitorId i visitedUserId są takie same -->
           <div v-if="visitorId == visitedUserId" class="text-gray-500 mt-4 md:mt-2 md:self-start">Your profile</div>
-          <button v-if="visitorId != visitedUserId" @click="followUser" class="bg-orange-300 text-white px-6 py-2 rounded-lg hover:bg-orange-400 mt-4 md:mt-2 md:self-start">Follow</button>
+          <button v-if="visitorId != visitedUserId && !isFollowing" @click="followUser" class="bg-orange-300 text-white px-6 py-2 rounded-lg hover:bg-orange-400 mt-4 md:mt-2 md:self-start">Follow</button>
+          <button v-if="visitorId != visitedUserId && isFollowing" @click="unfollowUser" class="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 mt-4 md:mt-2 md:self-start">Unfollow</button>
         </div>
       </div>
       <div class="stats mt-8 flex justify-around text-center">
@@ -80,7 +80,8 @@ export default {
       showFollowersPopup: false,
       showFollowingPopup: false,
       followersList: [],
-      followingList: []
+      followingList: [],
+      isFollowing: false
     };
   },
 
@@ -95,10 +96,38 @@ export default {
         .then(response => {
           console.log(response.data); 
           this.getFollowersCount();
+          this.isFollowing = true;
+          this.loadFollowersList(); 
         })
         .catch(error => {
           console.error("There was a problem with the Axios request:", error);
         });
+    },
+
+    unfollowUser() {
+      axios.post('http://localhost:8080/followers/remove', {
+        user: { id: this.visitedUserId },
+        follower: { id: this.visitorId }
+      })
+      .then(response => {
+        console.log(response.data); 
+        this.getFollowersCount();
+        this.loadFollowersList();
+      
+        this.isFollowing = false; 
+      })
+      .catch(error => {
+        console.error("There was a problem with the Axios request:", error);
+      });
+},
+
+
+    checkIfLoggedIn() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        
+        window.location.href = '/login';
+      }
     },
 
     getFollowersCount() {
@@ -124,57 +153,74 @@ export default {
     },
 
     openFollowersPopup() {
-      axios.get(`http://localhost:8080/followers/followers-list/${this.visitedUserId}`)
-        .then(response => {
-          this.followersList = response.data;
-          this.showFollowersPopup = true;
-        })
-        .catch(error => {
-          console.error("There was a problem with the Axios request:", error);
-        });
+      this.showFollowersPopup = true;
     },
 
     openFollowingPopup() {
-      axios.get(`http://localhost:8080/followers/following-list/${this.visitedUserId}`)
+      this.showFollowingPopup = true;
+    },
+
+    goToProfile(userId) {
+      window.location.href = `/profile/${userId}`;
+    },
+
+    fetchData() {
+      const visitedUserId = parseInt(this.$route.params.userId);
+      this.visitedUserId = visitedUserId;
+
+      axios.get(`http://localhost:8080/findProfile/${visitedUserId}`)
         .then(response => {
-          this.followingList = response.data;
-          this.showFollowingPopup = true;
+          const data = response.data;
+          this.name = data.name;
+          this.followers = data.followers || [];
+          this.following = data.following || [];
+          this.posts = data.posts || [];
+          console.log("User data:", data);
+
+          this.getFollowersCount();
+          this.getFollowingCount();
+          this.isFollowing = this.followers.some(follower => follower.id === this.visitorId);
+
+          // Pobierz listy followers i following
+          this.loadFollowersList();
+          this.loadFollowingList();
         })
         .catch(error => {
           console.error("There was a problem with the Axios request:", error);
         });
     },
 
-    goToProfile(userId) {
-      this.$router.push(`/profile/${userId}`);
+    loadFollowersList() {
+      axios.get(`http://localhost:8080/followers/followers-list/${this.visitedUserId}`)
+        .then(response => {
+          this.followersList = response.data;
+          console.log(response.data);
+          this.isFollowing = this.followersList.some(follower => follower.id === this.visitorId);
+          console.log(this.isFollowing);
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+
+    loadFollowingList() {
+      axios.get(`http://localhost:8080/followers/following-list/${this.visitedUserId}`)
+        .then(response => {
+          this.followingList = response.data;
+          
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
     }
   },
 
   created() {
+    this.checkIfLoggedIn();
     const visitorId = parseInt(localStorage.getItem("userId"));   
-    const visitedUserId = parseInt(this.$route.params.userId);
-    
-    console.log("Visitor ID:", visitorId);
-    console.log("Visited User ID:", visitedUserId);
-    
     this.visitorId = visitorId;
-    this.visitedUserId = visitedUserId;
-
-    axios.get(`http://localhost:8080/findProfile/${visitedUserId}`)
-      .then(response => {
-        const data = response.data;
-        this.name = data.name;
-        this.followers = data.followers || [];
-        this.following = data.following || [];
-        this.posts = data.posts || [];
-        console.log("User data:", data);
-
-        this.getFollowersCount();
-        this.getFollowingCount();
-      })
-      .catch(error => {
-        console.error("There was a problem with the Axios request:", error);
-      });
+    
+    this.fetchData();
   }
 };
 </script>

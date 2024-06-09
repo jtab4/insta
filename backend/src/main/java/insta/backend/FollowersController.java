@@ -9,6 +9,8 @@ import insta.backend.model.User;
 import insta.backend.repository.FollowersRepository;
 import insta.backend.repository.FollowingRepository;
 import insta.backend.repository.UserRepository;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -84,4 +86,25 @@ public class FollowersController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(followingUsers);
     }
+    @PostMapping("/remove")
+    public ResponseEntity<String> removeFollower(@RequestBody Followers followerData) {
+        Long userId = followerData.getUser().getId();
+        Long followerId = followerData.getFollower().getId();
+
+        Optional<Followers> followerOptional = followersRepository.findByUserIdAndFollowerId(userId, followerId);
+
+        if (followerOptional.isEmpty()) {
+            return ResponseEntity.status(404).body("Follower not found");
+        }
+
+        followersRepository.delete(followerOptional.get());
+        
+        
+        Optional<Following> followingOptional = followingRepository.findByUserIdAndFollowingId(followerId, userId);
+        if (followingOptional.isPresent()) {
+            followingRepository.delete(followingOptional.get());
+        }
+
+        return ResponseEntity.ok("Follower removed successfully");
+}
 }

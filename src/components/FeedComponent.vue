@@ -106,7 +106,10 @@ export default {
   created() {
     const userEmail = localStorage.getItem('userEmail');
     console.log('Logged in as:', userEmail);
-    
+    if (!userEmail) {
+      window.location.href = '/login';
+      return;
+    }
     
 
     
