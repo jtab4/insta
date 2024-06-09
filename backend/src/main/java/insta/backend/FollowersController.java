@@ -9,11 +9,14 @@ import insta.backend.model.User;
 import insta.backend.repository.FollowersRepository;
 import insta.backend.repository.FollowingRepository;
 import insta.backend.repository.UserRepository;
+import insta.backend.repository.NotificationRepository;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import java.util.Optional;
-
+import insta.backend.model.Notification;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Date;
+
 
 @RestController
 @RequestMapping("/followers")
@@ -28,30 +31,49 @@ public class FollowersController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
     @PostMapping("/add")
-    public ResponseEntity<String> addFollower(@RequestBody Followers newFollower) {
+public ResponseEntity<String> addFollower(@RequestBody Followers newFollower) {
 
-        Long userId = newFollower.getUser().getId();
-        Long followerId = newFollower.getFollower().getId();
+    Long userId = newFollower.getUser().getId();
+    Long followerId = newFollower.getFollower().getId();
 
-        boolean userExists = userRepository.existsById(userId);
-        boolean followerExists = userRepository.existsById(followerId);
+    boolean userExists = userRepository.existsById(userId);
+    boolean followerExists = userRepository.existsById(followerId);
 
-        if (!userExists || !followerExists) {
-            return ResponseEntity.status(404).body("User or follower not found");
-        }
-
-        // Zapisz nowego followersa
-        followersRepository.save(newFollower);
-
-        
-        Following following = new Following();
-        following.setUser(newFollower.getFollower());
-        following.setFollowing(newFollower.getUser());
-        followingRepository.save(following);
-
-        return ResponseEntity.ok("Follower added successfully");
+    if (!userExists || !followerExists) {
+        return ResponseEntity.status(404).body("User or follower not found");
     }
+
+    
+    followersRepository.save(newFollower);
+
+    
+    User followerUser = userRepository.findById(followerId).orElse(null);
+    String followerName = followerUser != null ? followerUser.getName() : "Unknown User";
+
+    
+    String notificationText = "Nowy obserwujący: " + followerName;
+
+    
+    Notification newNotification = new Notification();
+    newNotification.setText(notificationText);
+    newNotification.setData(new Date());
+    newNotification.setUser(newFollower.getUser());
+    notificationRepository.save(newNotification);
+
+    
+    Following following = new Following();
+    following.setUser(newFollower.getFollower());
+    following.setFollowing(newFollower.getUser());
+    followingRepository.save(following);
+
+    return ResponseEntity.ok("Follower added successfully");
+}
+
+
 
     
     @GetMapping("/count/{userId}")
