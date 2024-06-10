@@ -31,15 +31,19 @@
       post: {
         type: Object,
         required: true
-      },
-      
-      addLike: {
-      type: Function,
-      required: true
-    }
+      }
     },
     methods: {
-      
+      addLike(postId) {
+        axios.post(`http://localhost:8080/posts/add-like/${postId}`)
+      .then(response => {
+        
+        this.post.likes +=1;
+      })
+      .catch(error => {
+        console.error("There was a problem with the Axios request:", error);
+      });
+      },
       
     }
   };

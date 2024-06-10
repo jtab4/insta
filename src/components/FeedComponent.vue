@@ -1,15 +1,15 @@
 <template>
   <div class="flex flex-col md:flex-row min-h-screen w-full bg-gradient-to-r from-orange-300 to-pink-300 p-4">
-   
+    
     <aside class="sidebar w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
-      <div class="profile flex flex-col items-center bg-pink-100 p-4 rounded-lg">
+      
+      <div class="profile flex flex-col items-center bg-pink-100 p-4 rounded-lg mb-4">
         <img class="w-24 h-24 rounded-full mb-4" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Profile Picture">
         <h2 class="text-lg font-semibold text-pink-500">{{ userData.name }}</h2>
-        
-        <!-- Dodano obsługę kliknięcia przycisku "View profile" -->
-        <button @click="viewProfile" class="bg-orange-300 text-white px-4 py-2 rounded-lg mt-4 hover:bg-orange-400">View profile</button>
+        <button @click="viewProfile" class="bg-orange-300 text-white px-4 py-2 rounded-lg mt-4 hover:bg-orange-400 transition duration-300 ease-in-out">View profile</button>
       </div>
-      <div class="suggestions mt-6 bg-pink-100 p-4 rounded-lg">
+      
+      <div class="suggestions bg-pink-100 p-4 rounded-lg mb-4">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Suggestions for you</h3>
         <div class="suggestion flex items-center mb-3" v-for="user in suggestions" :key="user.id">
           <div class="p-4 bg-white rounded-lg shadow-md flex items-center justify-between w-full">
@@ -17,23 +17,20 @@
               <img class="w-10 h-10 rounded-full" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" :alt="user.name">
               <router-link :to="`/profile/${user.id}`" class="text-sm font-semibold text-pink-500 hover:underline ml-2">{{ user.name }}</router-link>
             </div>
-            
           </div>
         </div>
       </div>
+      
+      <div class="settings bg-pink-100 p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold text-pink-500 mb-4">Settings</h3>
+        
+      </div>
     </aside>
-
     
-    <main class="feed w-full md:w-2/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
-      
-      
-      
+    
+    <main class="feed w-full md:w-1/2 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
       <div class="post-list space-y-6">
-        <PostComponent 
-          v-for="post in posts" 
-          :key="post.id" 
-          :post="post" 
-        />
+        <PostComponent v-for="post in posts" :key="post.id" :post="post" />
         <div v-if="posts.length === 0" class="no-posts-message text-center text-gray-500">
           <p>No posts available.</p>
         </div>
@@ -41,29 +38,30 @@
     </main>
 
     
-    <aside class="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
-      <div class="explore mb-4 bg-pink-100 p-4 rounded-lg">
+    <aside class="sidebar w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto">
+      
+      <div class="explore bg-pink-100 p-4 rounded-lg mb-4">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Explore</h3>
         
-        <div class="space-y-2">
-          <p class="text-sm">Explore content here...</p>
-          
-        </div>
       </div>
-
-      <div class="notifications bg-pink-100 p-4 rounded-lg">
+     
+      <div class="notifications bg-pink-100 p-4 rounded-lg mb-4">
         <h3 class="text-lg font-semibold text-pink-500 mb-4">Notifications</h3>
         <div class="grid gap-4">
           <div v-for="notification in notifications" :key="notification.id" class="bg-white shadow-md rounded-lg p-4">
             <p class="text-sm">{{ notification.text }}</p>
-            <p class="text-xs text-gray-500">{{ this.formatDate(notification.data) }}</p>
+            <p class="text-xs text-gray-500">{{ formatDate(notification.data) }}</p>
           </div>
         </div>
       </div>
-      
+      <div class="messages bg-pink-100 p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold text-pink-500 mb-4">Messages</h3>
+        
+      </div>
     </aside>
   </div>
 </template>
+
 
 <script>
 import PostComponent from './PostComponent.vue'; 
