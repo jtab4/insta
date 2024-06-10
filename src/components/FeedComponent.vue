@@ -29,11 +29,12 @@
       
       
       <div class="post-list space-y-6">
-        
-        <PostComponent />
-        <PostComponent />
-        
-        <div class="no-posts-message text-center text-gray-500">
+        <PostComponent 
+          v-for="post in posts" 
+          :key="post.id" 
+          :post="post" 
+        />
+        <div v-if="posts.length === 0" class="no-posts-message text-center text-gray-500">
           <p>No posts available.</p>
         </div>
       </div>
@@ -55,7 +56,7 @@
         <div class="grid gap-4">
           <div v-for="notification in notifications" :key="notification.id" class="bg-white shadow-md rounded-lg p-4">
             <p class="text-sm">{{ notification.text }}</p>
-            <p class="text-xs text-gray-500">{{ notification.date }}</p>
+            <p class="text-xs text-gray-500">{{ this.formatDate(notification.data) }}</p>
           </div>
         </div>
       </div>
@@ -66,7 +67,8 @@
 
 <script>
 import PostComponent from './PostComponent.vue'; 
-import { useRouter } from 'vue-router'; // Importujemy useRouter z Vue Router
+import { useRouter } from 'vue-router';
+import axios from 'axios' // Importujemy useRouter z Vue Router
 
 export default {
   components: {
@@ -78,7 +80,10 @@ export default {
     return {
       userData: null,
       suggestions: [],
-      notifications : []
+      notifications : [],
+      followersList: [],
+      followingList: [],
+      posts : []
     };
   },
   methods: {
@@ -99,15 +104,27 @@ export default {
         })
         .then(data => {
           this.notifications = data;
+          
+          console.log(this.formatDate(this.formatDate(data[0].data)))
         })
         .catch(error => {
           console.error('Error fetching user notifications:', error);
         });
     },
+    formatDate(dateString) {
+      let date = new Date(dateString); 
+      let year = date.getFullYear();
+      let month = String(date.getMonth() + 1).padStart(2, '0');
+      let day = String(date.getDate()).padStart(2, '0');
+      let hours = String(date.getHours()).padStart(2, '0');
+      let minutes = String(date.getMinutes()).padStart(2, '0');
+
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+  },
   
     fetchSuggestions() {
-      const userEmail = localStorage.getItem('userEmail'); // Pobierz adres e-mail z localStorage
-      fetch(`http://localhost:8080/api/suggestions/lastFiveExcluding/${userEmail}`) // Wywołaj endpoint z adresem e-mail z localStorage
+      const userEmail = localStorage.getItem('userEmail'); 
+      fetch(`http://localhost:8080/api/suggestions/lastFiveExcluding/${userEmail}`) 
         .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -122,6 +139,31 @@ export default {
         .catch(error => {
           console.error('There was a problem with fetching suggestions:', error);
         });
+    },
+    
+
+    loadFollowingList() {
+      const userId = localStorage.getItem("userId")
+      axios.get(`http://localhost:8080/followers/following-list/${userId}`)
+        .then(response => {
+          this.followingList = response.data;
+          console.log(response.data)
+          this.loadPostsByFollowing();
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
+    },
+    loadPostsByFollowing() {
+      const userIds = this.followingList.map(user => user.id);
+      axios.post('http://localhost:8080/posts/user-posts-by-ids', userIds)
+        .then(response => {
+          this.posts = response.data;
+          
+        })
+        .catch(error => {
+          console.error("There was a problem with the Axios request:", error);
+        });
     }
   },
   created() {
@@ -131,6 +173,7 @@ export default {
       window.location.href = '/login';
       return;
     }
+    this.loadFollowingList();
     
 
     
@@ -148,6 +191,8 @@ export default {
        
         this.fetchSuggestions();
         this.fetchUserNotifications(data.id)
+        
+        
       })
       .catch(error => {
         console.error('There was a problem with the fetch operation:', error);

@@ -8,7 +8,7 @@ import insta.backend.model.Post;
 import insta.backend.model.User;
 import insta.backend.repository.PostRepository;
 import insta.backend.repository.UserRepository;
-
+import java.util.stream.Collectors;
 import java.util.List;
 
 @RestController
@@ -48,4 +48,9 @@ public class PostController {
         Post updatedPost = postRepository.save(post);
         return new ResponseEntity<>(updatedPost, HttpStatus.OK);
 }
+    @PostMapping("/user-posts-by-ids")
+    public ResponseEntity<List<Post>> getUserPostsByIds(@RequestBody List<Long> userIds) {
+        List<Post> posts = postRepository.findTop10ByUserIds(userIds);
+        return new ResponseEntity<>(posts.stream().limit(10).collect(Collectors.toList()), HttpStatus.OK);
+    }
 }
