@@ -53,4 +53,9 @@ public class PostController {
         List<Post> posts = postRepository.findTop10ByUserIds(userIds);
         return new ResponseEntity<>(posts.stream().limit(10).collect(Collectors.toList()), HttpStatus.OK);
     }
+    @GetMapping("/random-posts")
+    public ResponseEntity<List<Post>> getRandomPosts() {
+        List<Post> randomPosts = postRepository.findRandomPosts();
+        return new ResponseEntity<>(randomPosts, HttpStatus.OK);
+    }
 }
